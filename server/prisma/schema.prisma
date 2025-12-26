@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("USER")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  patients  Patient[]
+  auditLogs AuditLog[]
+}
+
+model Patient {
+  id              String   @id @default(uuid())
+  displayName     String
+  dob             DateTime?
+  sex             String?
+  createdByUserId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  createdBy       User     @relation(fields: [createdByUserId], references: [id])
+  documents       Document[]
+  structuredFacts StructuredFact[]
+  flags           Flag[]
+}
+
+model Document {
+  id            String   @id @default(uuid())
+  patientId     String
+  type          String   // Enum: DocumentType
+  fileName      String
+  mimeType      String
+  storageUrl    String
+  
+  // Reducto fields
+  reductoFileId String?
+  reductoJobId  String?
+  
+  status        String   @default("UPLOADED") // Enum: DocumentStatus
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  patient       Patient   @relation(fields: [patientId], references: [id])
+  parseJobs     ParseJob[]
+  structuredFacts StructuredFact[]
+}
+
+model ParseJob {
+  id              String   @id @default(uuid())
+  documentId      String
+  vendor          String   @default("reducto")
+  
+  jobId           String   // Reducto job ID
+  status          String   @default("PENDING") // Enum: ParseJobStatus
+  progress        Float?
+  reason          String?  // Error reason
+  
+  studioLink      String?
+  durationSeconds Float?
+  usageNumPages   Int?
+  usageCredits    Float?
+  resultType      String?  // "full" or "url"
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  document        Document      @relation(fields: [documentId], references: [id])
+  parsedChunks    ParsedChunk[]
+  parsedBlocks    ParsedBlock[]
+}
+
+model ParsedChunk {
+  id          String   @id @default(uuid())
+  parseJobId  String
+  chunkIndex  Int
+  content     String   // Long text
+  
+  embed             String? // Placeholder for embedding
+  enriched          Boolean @default(false)
+  enrichmentSuccess Boolean?
+
+  createdAt   DateTime @default(now())
+
+  parseJob    ParseJob @relation(fields: [parseJobId], references: [id])
+}
+
+model ParsedBlock {
+  id          String   @id @default(uuid())
+  parseJobId  String
+  chunkIndex  Int
+  blockIndex  Int
+  
+  type        String
+  content     String   // Long text
+  
+  bboxPage    Int
+  bboxLeft    Float
+  bboxTop     Float
+  bboxWidth   Float
+  bboxHeight  Float
+  
+  confidence  String? // Can be numeric or string depending on SDK
+  
+  createdAt   DateTime @default(now())
+
+  parseJob    ParseJob @relation(fields: [parseJobId], references: [id])
+}
+
+model StructuredFact {
+  id              String   @id @default(uuid())
+  patientId       String
+  documentId      String?
+  
+  factType        String   // Enum: FactType
+  dataJson        String   // JSON string
+  confidence      Float?
+  
+  evidenceJson    String   // JSON string: { quote: string, page?: number }
+  normalizedKeysJson String? // JSON string
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  patient         Patient   @relation(fields: [patientId], references: [id])
+  document        Document? @relation(fields: [documentId], references: [id])
+}
+
+model Flag {
+  id              String   @id @default(uuid())
+  patientId       String
+  
+  flagType        String   // Enum: FlagType
+  severity        String   // Enum: Severity
+  message         String
+  
+  relatedFactIds  String   // CSV or JSON string of fact IDs
+  rationaleJson   String?  // JSON string
+  
+  status          String   @default("OPEN") // Enum: FlagStatus
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  patient         Patient @relation(fields: [patientId], references: [id])
+}
+
+model DrugSynonym {
+  id        String   @id @default(uuid())
+  canonical String
+  synonym   String
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String
+  action      String   // Enum-like string
+  entityType  String
+  entityId    String?
+  metadataJson String? // JSON string
+  
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+}
