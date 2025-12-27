@@ -12,8 +12,7 @@
     "exactOptionalPropertyTypes": false
   },
   "include": [
-    "src/**/*",
-    "prisma/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules"
