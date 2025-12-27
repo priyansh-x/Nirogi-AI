@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../lib/api';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/Tabs';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -39,7 +39,7 @@ export const PatientDetail = () => {
     useEffect(() => {
         const init = async () => {
             try {
-                const pRes = await axios.get(`http://localhost:3000/api/v1/patients/${id}`);
+                const pRes = await api.get(`/patients/${id}`);
                 setPatient(pRes.data);
                 await fetchDocuments();
             } catch (err) {
@@ -54,7 +54,7 @@ export const PatientDetail = () => {
 
     const fetchDocuments = async () => {
         try {
-            const dRes = await axios.get(`http://localhost:3000/api/v1/patients/${id}/documents`);
+            const dRes = await api.get(`/patients/${id}/documents`);
             setDocuments(dRes.data);
         } catch (err) {
             console.error(err);
@@ -70,7 +70,7 @@ export const PatientDetail = () => {
     // Actions
     const handleParse = async (docId: string) => {
         try {
-            await axios.post(`http://localhost:3000/api/v1/documents/${docId}/parse`);
+            await api.post(`/documents/${docId}/parse`);
             toast('Analysis started with Reducto', 'info');
             fetchDocuments();
         } catch (err) {
@@ -80,7 +80,7 @@ export const PatientDetail = () => {
 
     const handleViewParsed = async (docId: string) => {
         try {
-            const res = await axios.get(`http://localhost:3000/api/v1/documents/${docId}/parsed`);
+            const res = await api.get(`/documents/${docId}/parsed`);
             setParsedData(res.data);
             setActiveDocId(docId);
             setActiveTab('debug');

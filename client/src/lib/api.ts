@@ -1,9 +1,9 @@
 import axios from 'axios';
 
 // Create a centralized Axios instance
-// VITE_API_URL should be set in environment variables (e.g., in Vercel)
+// VITE_API_BASE_URL should be set in environment variables (e.g., in Vercel)
 // Defaults to localhost for local development
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+const baseURL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000') + '/api/v1';
 
 export const api = axios.create({
     baseURL,

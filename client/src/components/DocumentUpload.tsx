@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import { Upload, File, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from './ui/Button';
-import axios from 'axios';
+import { api } from '../lib/api';
 import { Card } from './ui/Card';
 
 interface DocumentUploadProps {
     patientId: string;
     onUploadSuccess: () => void;
 }
-
-export const DocumentUpload = ({ patientId, onUploadSuccess }: DocumentUploadProps) => {
+export const DocumentUpload = ({ patientId, onUploadSuccess }: { patientId: string; onUploadSuccess: () => void }) => {
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -24,21 +23,21 @@ export const DocumentUpload = ({ patientId, onUploadSuccess }: DocumentUploadPro
     const handleUpload = async () => {
         if (!file) return;
 
+        const formData = new FormData();
+        formData.append('file', file);
+
         setUploading(true);
         setError(null);
         try {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            await axios.post(`http://localhost:3000/api/v1/patients/${patientId}/documents`, formData, {
+            await api.post(`/patients/${patientId}/documents`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-
             setFile(null);
             onUploadSuccess();
         } catch (err: any) {
+            console.error(err);
             setError(err.response?.data?.error || 'Upload failed');
         } finally {
             setUploading(false);

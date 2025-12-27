@@ -4,70 +4,73 @@ import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Card, CardBody, CardHeader } from '../components/ui/Card';
 import { useToast } from '../components/ui/Toast';
-import axios from 'axios';
-import { Building, Shield, Activity, FileText } from 'lucide-react';
+import { api } from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 import { Badge } from '../components/ui/Badge';
+import { Building, Shield, Activity, FileText } from 'lucide-react';
 
 export const Profile = () => {
+    const { user, logout } = useAuth();
     const { toast } = useToast();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [user, setUser] = useState<any>(null);
+
+    // Form State (initialized from user)
+    const [formData, setFormData] = useState({
+        name: user?.name || '',
+        email: user?.email || ''
+    });
+
+    // Detailed Profile Data
     const [patientData, setPatientData] = useState<any>(null);
     const [patientDocs, setPatientDocs] = useState<any[]>([]);
 
     useEffect(() => {
-        fetchProfile();
-    }, []);
-
-    useEffect(() => {
-        if (user && user.role === 'PATIENT') {
-            fetchPatientData();
+        if (user) {
+            setFormData({
+                name: user.name || '',
+                email: user.email || ''
+            });
         }
     }, [user]);
 
-    const fetchProfile = async () => {
-        try {
-            const res = await axios.get('http://localhost:3000/api/v1/users/me');
-            setUser(res.data);
-        } catch (error) {
-            console.error(error);
-            toast('Failed to load profile', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchPatientData = async () => {
-        try {
-            // 1. Get the patient record linked to this user
-            const listRes = await axios.get('http://localhost:3000/api/v1/patients');
-            const myPatient = listRes.data[0];
-
-            if (myPatient) {
-                // 2. Get full details including facts
-                const fullRes = await axios.get(`http://localhost:3000/api/v1/patients/${myPatient.id}`);
-                setPatientData(fullRes.data);
-
-                // 3. Get documents
-                const docRes = await axios.get(`http://localhost:3000/api/v1/patients/${myPatient.id}/documents`);
-                setPatientDocs(docRes.data);
+    useEffect(() => {
+        const fetchProfile = async () => {
+            if (!user) {
+                setLoading(false);
+                return;
             }
-        } catch (error) {
-            console.error(error);
-            toast('Failed to load medical records', 'error');
-        }
-    };
+            try {
+                // If patient, fetch their patient record stats
+                if (user?.role === 'PATIENT') {
+                    // Find patient record linked to this user
+                    const listRes = await api.get('/patients');
+                    // Find by matching user ID assuming link
+                    const found = listRes.data.find((p: any) => p.userId === user.id);
+
+                    if (found) {
+                        const fullRes = await api.get(`/patients/${found.id}`);
+                        setPatientData(fullRes.data);
+
+                        const docRes = await api.get(`/patients/${found.id}/documents`);
+                        setPatientDocs(docRes.data);
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                toast('Failed to load profile details', 'error');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProfile();
+    }, [user]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
         try {
-            const res = await axios.patch('http://localhost:3000/api/v1/users/me', {
-                name: user.name,
-                email: user.email
-            });
-            setUser(res.data);
+            await api.patch('/users/me', formData);
             toast('Profile updated successfully', 'success');
         } catch (error) {
             toast('Failed to update profile', 'error');
@@ -197,14 +200,14 @@ export const Profile = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <Input
                                         label="Full Name"
-                                        value={user?.name || ''}
-                                        onChange={(e) => setUser({ ...user, name: e.target.value })}
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                     />
                                     <Input
                                         label="Email Address"
                                         type="email"
-                                        value={user?.email || ''}
-                                        onChange={(e) => setUser({ ...user, email: e.target.value })}
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     />
                                 </div>
                                 <Input
