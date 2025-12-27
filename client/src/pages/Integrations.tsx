@@ -1,9 +1,9 @@
-import React from 'react';
+// import React from 'react';
 import { Breadcrumbs } from '../components/ui/Breadcrumbs';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Activity, Database, FileJson, Server, ShieldCheck, Copy } from 'lucide-react';
-import { Card, CardBody, CardHeader } from '../components/ui/Card';
+import { Card, CardBody } from '../components/ui/Card';
 
 const IntegrationCard = ({ icon: Icon, name, status, types, output }: any) => (
     <Card className="hover:shadow-md transition-shadow">

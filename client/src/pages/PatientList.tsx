@@ -7,7 +7,7 @@ import { Modal } from '../components/ui/Modal';
 import { useToast } from '../components/ui/Toast';
 import { Plus, Search, User, FileText, ChevronRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../lib/api';
 
 interface Patient {
     id: string;
@@ -38,7 +38,7 @@ export const PatientList = () => {
 
     const fetchPatients = async () => {
         try {
-            const res = await axios.get('http://localhost:3000/api/v1/patients');
+            const res = await api.get('/patients');
             setPatients(res.data);
         } catch (error) {
             console.error(error);
@@ -54,7 +54,7 @@ export const PatientList = () => {
 
         setCreating(true);
         try {
-            const res = await axios.post('http://localhost:3000/api/v1/patients', {
+            const res = await api.post('/patients', {
                 displayName: newPatientName,
                 dob: newPatientDOB || null,
                 sex: newPatientSex
@@ -69,7 +69,7 @@ export const PatientList = () => {
             setNewPatientSex('Male');
 
             // Navigate to new patient
-            navigate(`/patients/${res.data.id}`);
+            navigate(`/app/patients/${res.data.id}`);
 
         } catch (error) {
             console.error(error);

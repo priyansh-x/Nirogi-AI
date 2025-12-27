@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+// import { api } from '../lib/api';
 
 interface User {
     id: string;
@@ -32,8 +32,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (storedToken && storedUser) {
             setToken(storedToken);
             setUser(JSON.parse(storedUser));
-            // Set default header
-            axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+            // Set default header via interceptor or manually if needed (interceptor handles it usually)
+            // api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
         }
         setLoading(false);
     }, []);
@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(newUser);
         localStorage.setItem('token', newToken);
         localStorage.setItem('user', JSON.stringify(newUser));
-        axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+        // api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
     };
 
     const logout = () => {
@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(null);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        delete axios.defaults.headers.common['Authorization'];
+        // delete api.defaults.headers.common['Authorization'];
     };
 
     return (

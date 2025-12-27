@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, File, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, File, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from './ui/Button';
 import axios from 'axios';
 import { Card } from './ui/Card';

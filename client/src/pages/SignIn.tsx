@@ -4,8 +4,8 @@ import { Input } from '../components/ui/Input';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/ui/Toast';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import axios from 'axios';
-import { Activity, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Activity } from 'lucide-react';
+import { api } from '../lib/api';
 
 export const SignIn = () => {
     const { login } = useAuth();
@@ -23,7 +23,7 @@ export const SignIn = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post('http://localhost:3000/api/v1/auth/signin', {
+            const res = await api.post('/auth/signin', {
                 email,
                 password
             });

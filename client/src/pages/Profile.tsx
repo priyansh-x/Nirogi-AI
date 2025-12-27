@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Card, CardBody, CardHeader } from '../components/ui/Card';
 import { useToast } from '../components/ui/Toast';
 import axios from 'axios';
-import { User, Mail, Building, Shield, Activity, FileText } from 'lucide-react';
+import { Building, Shield, Activity, FileText } from 'lucide-react';
 import { Badge } from '../components/ui/Badge';
 
 export const Profile = () => {
