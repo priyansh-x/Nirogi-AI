@@ -40,11 +40,29 @@ export const Sidebar = () => {
 
             <nav className="flex-1 py-6 space-y-1">
                 <div className="px-6 pb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Workspace</div>
-                <NavItem to="/app/patients" icon={Users} label="Patients" />
-                <NavItem to="/app/audit" icon={FileText} label="Audit Logs" />
+
+                {/* Doctor & Admin View */}
+                {(user?.role === 'DOCTOR' || user?.role === 'ADMIN') && (
+                    <NavItem to="/app/patients" icon={Users} label="Patients" />
+                )}
+
+                {/* Patient View */}
+                {user?.role === 'PATIENT' && (
+                    <NavItem to="/app/profile" icon={Activity} label="My Health Profile" />
+                )}
+
+                {/* Audit Logs (Everyone or Admin only? Let's keep for Doctor/Admin for now) */}
+                {(user?.role === 'DOCTOR' || user?.role === 'ADMIN') && (
+                    <NavItem to="/app/audit" icon={FileText} label="Audit Logs" />
+                )}
 
                 <div className="px-6 pb-2 pt-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Product</div>
-                <NavItem to="/app/integrations" icon={Layers} label="EHR Integrations" />
+
+                {/* Admin Only */}
+                {user?.role === 'ADMIN' && (
+                    <NavItem to="/app/integrations" icon={Layers} label="EHR Integrations" />
+                )}
+
                 <NavItem to="/app/docs" icon={BookOpen} label="Documentation" />
                 <NavItem to="/app/settings" icon={Settings} label="Settings" />
             </nav>

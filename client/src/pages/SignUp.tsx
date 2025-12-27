@@ -15,6 +15,7 @@ export const SignUp = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [role, setRole] = useState('PATIENT');
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -25,13 +26,20 @@ export const SignUp = () => {
             const res = await axios.post('http://localhost:3000/api/v1/auth/signup', {
                 name,
                 email,
-                password
+                password,
+                role
             });
 
             const { token, user } = res.data;
             login(token, user);
             toast(`Welcome, ${user.name}!`, 'success');
-            navigate('/app/patients');
+
+            // Redirect based on role
+            if (user.role === 'PATIENT') {
+                navigate('/app/profile');
+            } else {
+                navigate('/app/patients');
+            }
 
         } catch (err: any) {
             toast(err.response?.data?.error || 'Signup failed', 'error');
@@ -82,6 +90,19 @@ export const SignUp = () => {
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••"
                         />
+
+                        <div className="space-y-1">
+                            <label className="block text-sm font-medium text-slate-700">Role</label>
+                            <select
+                                value={role}
+                                onChange={(e) => setRole(e.target.value)}
+                                className="block w-full rounded-md border-0 py-1.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 px-3 bg-white"
+                            >
+                                <option value="PATIENT">Patient</option>
+                                <option value="DOCTOR">Doctor</option>
+                                <option value="ADMIN">Admin</option>
+                            </select>
+                        </div>
 
                         <Button type="submit" className="w-full" loading={loading} size="lg">
                             Sign up

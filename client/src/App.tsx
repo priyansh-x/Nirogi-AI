@@ -18,6 +18,16 @@ import { PatientDetail } from './pages/PatientDetail';
 import { Integrations } from './pages/Integrations';
 import { Profile } from './pages/Profile';
 
+import { useAuth } from './context/AuthContext';
+
+function RedirectByRole() {
+  const { user } = useAuth();
+  if (user?.role === 'PATIENT') {
+    return <Navigate to="profile" replace />;
+  }
+  return <Navigate to="patients" replace />;
+}
+
 function App() {
   return (
     <ThemeProvider>
@@ -38,7 +48,7 @@ function App() {
               {/* Protected Routes Wrapper */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/app" element={<Layout />}>
-                  <Route index element={<Navigate to="patients" replace />} />
+                  <Route index element={<RedirectByRole />} />
                   <Route path="patients" element={<PatientList />} />
                   <Route path="patients/:id" element={<PatientDetail />} />
 

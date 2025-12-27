@@ -24,10 +24,20 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-// GET all patients
+// GET all patients (Filtered by Role)
 router.get('/', async (req, res) => {
     try {
+        const user = (req as any).user;
+        const whereClause: any = {};
+
+        // If 'PATIENT' role, only show their own profile
+        if (user.role === 'PATIENT') {
+            whereClause.userId = user.id;
+        }
+        // Doctors and Admins see all (no filter needed)
+
         const patients = await prisma.patient.findMany({
+            where: whereClause,
             orderBy: { createdAt: 'desc' },
             include: {
                 _count: {
@@ -45,11 +55,20 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
+        const user = (req as any).user;
+
         const patient = await prisma.patient.findUnique({
             where: { id },
             include: { structuredFacts: true }
         });
+
         if (!patient) return res.status(404).json({ error: 'Patient not found' });
+
+        // RBAC Check: If user is PATIENT, they can only view their own record
+        if (user.role === 'PATIENT' && patient.userId !== user.id) {
+            return res.status(403).json({ error: 'Access denied: You can only view your own profile.' });
+        }
+
         res.json(patient);
     } catch (error: any) {
         res.status(500).json({ error: error.message });

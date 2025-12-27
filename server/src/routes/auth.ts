@@ -10,7 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-2024';
 // POST /signup
 router.post('/signup', async (req, res) => {
     try {
-        const { email, password, name } = req.body;
+        const { email, password, name, role = 'USER' } = req.body;
 
         // Check if user exists
         const existingUser = await prisma.user.findUnique({
@@ -24,24 +24,41 @@ router.post('/signup', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Create user
-        const user = await prisma.user.create({
-            data: {
-                email,
-                password: hashedPassword,
-                name,
-                role: 'USER' // Default role
+        // Transaction to ensure User and Patient (if applicable) are created together
+        const result = await prisma.$transaction(async (tx) => {
+            // Create user
+            const user = await tx.user.create({
+                data: {
+                    email,
+                    password: hashedPassword,
+                    name,
+                    role: role.toUpperCase() // Ensure uppercase
+                }
+            });
+
+            // If role is PATIENT, create a linked Patient profile
+            if (role.toUpperCase() === 'PATIENT') {
+                await tx.patient.create({
+                    data: {
+                        displayName: name || email.split('@')[0],
+                        createdByUserId: user.id, // Self-created
+                        userId: user.id
+                    }
+                });
             }
+
+            return user;
         });
 
         // Create token
-        const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, {
+        const token = jwt.sign({ id: result.id, email: result.email, role: result.role }, JWT_SECRET, {
             expiresIn: '24h'
         });
 
-        res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
+        res.status(201).json({ token, user: { id: result.id, email: result.email, name: result.name, role: result.role } });
 
     } catch (error: any) {
+        console.error('Signup error:', error);
         res.status(500).json({ error: error.message });
     }
 });

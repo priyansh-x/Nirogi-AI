@@ -16,8 +16,11 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  patients  Patient[]
+  patients  Patient[] // Patients created by this user (Doctor/Admin view)
   auditLogs AuditLog[]
+
+  // Link to their own Patient profile (if role is PATIENT)
+  patientProfile Patient? @relation("PatientUser")
 }
 
 model Patient {
@@ -33,6 +36,10 @@ model Patient {
   documents       Document[]
   structuredFacts StructuredFact[]
   flags           Flag[]
+
+  // Link to a specific User account (for Patient portal access)
+  userId          String?  @unique
+  user            User?    @relation("PatientUser", fields: [userId], references: [id])
 }
 
 model Document {
