@@ -10,7 +10,7 @@ import { Badge } from '../components/ui/Badge';
 import { Building, Shield, Activity, FileText } from 'lucide-react';
 
 export const Profile = () => {
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
     const { toast } = useToast();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);

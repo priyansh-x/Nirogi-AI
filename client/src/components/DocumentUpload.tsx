@@ -8,7 +8,7 @@ interface DocumentUploadProps {
     patientId: string;
     onUploadSuccess: () => void;
 }
-export const DocumentUpload = ({ patientId, onUploadSuccess }: { patientId: string; onUploadSuccess: () => void }) => {
+export const DocumentUpload = ({ patientId, onUploadSuccess }: DocumentUploadProps) => {
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
